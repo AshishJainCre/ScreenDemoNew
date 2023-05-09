@@ -9,7 +9,7 @@ import UIKit
 
 class anotherViewController: UIViewController {
 
-    
+    var touchOffset: CGPoint = .zero
     var cordArr:[(Float,Float)] = []
     var mainView:UIView={
         let view = UIView()
@@ -55,6 +55,7 @@ class anotherViewController: UIViewController {
         
     }()
     
+    var flag =  true
 
     override func viewDidLoad(){
         super.viewDidLoad()
@@ -64,7 +65,6 @@ class anotherViewController: UIViewController {
         print("Screen 2 VC")
 //        setColor()
 
-        
     }
 
     override func viewDidLayoutSubviews(){
@@ -140,8 +140,8 @@ class anotherViewController: UIViewController {
         view.addGestureRecognizer(pinchGesture1)
         let tapGesture1 = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         view.addGestureRecognizer(tapGesture1)
-//        let panGesture1 = UIPanGestureRecognizer(target: self, action: #selector(handlePan(sender:)))
-//        image1.addGestureRecognizer(panGesture1)
+        let panGesture1 = UIPanGestureRecognizer(target: self, action: #selector(handlePan(sender:)))
+        view.addGestureRecognizer(panGesture1)
 //        let panGesture2 = UIPanGestureRecognizer(target: self, action: #selector(handlePan2(sender:)))
 //        image2.addGestureRecognizer(panGesture2)
     }
@@ -152,25 +152,23 @@ class anotherViewController: UIViewController {
             let x = Int(touchPoint.x)
             let y = Int(touchPoint.y)
         
-      //  print(cordArr)
-        print("tapp tried")
-        
-            print("Tapped at coordinates x = ",x,"y = ",Float(y))
         
         guard let xValue = searchX(forY: Float(y), in: cordArr) else{
             return
         }
-        
+
         if xValue>Float(x){
-            image2.isUserInteractionEnabled = true
-            image1.isUserInteractionEnabled = false
-            print("Tapped in 2 view")
+            flag = false
         }else{
-            image1.isUserInteractionEnabled = true
-            image2.isUserInteractionEnabled = false
-            print("Tapped in 1 view")
+            flag = true
         }
         
+        
+        
+      //  print(cordArr)
+        print("tapp tried")
+        
+            print("Tapped at coordinates x = ",x,"y = ",Float(y))
         
         }
     
@@ -192,18 +190,26 @@ class anotherViewController: UIViewController {
             let scale = gesture.scale
             
         if xValue>Float(x){
-            image1.frame = CGRect(x: 0, y: 0, width: view1.frame.width*scale, height: view1.frame.height*scale)
+            image1.bounds = CGRect(x: 0, y: 0, width: view2.frame.width*scale, height: view2.frame.height*scale)
             print("Tapped in 2 view")
+            flag = false
         }else{
             
-            image2.frame = CGRect(x: 0, y: 0, width: view1.frame.width*scale, height: view1.frame.height*scale)
+            image2.bounds = CGRect(x: 0, y: 0, width: view2.frame.width*scale, height: view2.frame.height*scale)
             print("Tapped in 1 view")
+            flag = true
         }
             
             
             
             print(scale)
         }
+        
+        if gesture.state == .ended{
+            
+        }
+        
+        
     }
 
     
@@ -220,47 +226,15 @@ class anotherViewController: UIViewController {
         let translation = sender.translation(in: self.view)
         let velocity = sender.velocity(in: self.view)
         
-        // Get the tap location relative to the view
-        let tapLocation = sender.location(in: self.view)
+        // Scale the translation values to control the speed of movement
+        let scalingFactor: CGFloat = 0.8
+        let scaledTranslation = CGPoint(x: translation.x * scalingFactor, y: translation.y * scalingFactor)
         
-        // Check if the tap is inside image1 or image2
-        if sender.view == image1 {
-            // Tapped inside image1
-            print("Tapped inside image1 at \(tapLocation)")
-        } else if sender.view == image2 {
-            // Tapped inside image2
-            print("Tapped inside image2 at \(tapLocation)")
+        if flag == true {
+            image2.center = CGPoint(x: image2.center.x + scaledTranslation.x, y: image2.center.y + scaledTranslation.y)
+        } else {
+            image1.center = CGPoint(x: image1.center.x + scaledTranslation.x, y: image1.center.y + scaledTranslation.y)
         }
-        
-        // Move the view
-        sender.view!.center = CGPoint(x: sender.view!.center.x + translation.x, y: sender.view!.center.y + translation.y)
-        
-        // Reset the translation so that it doesn't accumulate
-        sender.setTranslation(CGPoint.zero, in: self.view)
-        
-        // Log the velocity
-        print("Velocity: \(velocity)")
-    }
-    
-    @objc func handlePan2(sender: UIPanGestureRecognizer) {
-        // Get the translation and velocity of the gesture
-        let translation = sender.translation(in: self.view)
-        let velocity = sender.velocity(in: self.view)
-        
-        // Get the tap location relative to the view
-        let tapLocation = sender.location(in: self.view)
-        
-        // Check if the tap is inside image1 or image2
-        if sender.view == image1 {
-            // Tapped inside image1
-            print("Tapped inside image1 at \(tapLocation)")
-        } else if sender.view == image2 {
-            // Tapped inside image2
-            print("Tapped inside image2 at \(tapLocation)")
-        }
-        
-        // Move the view
-        sender.view!.center = CGPoint(x: sender.view!.center.x + translation.x, y: sender.view!.center.y + translation.y)
         
         // Reset the translation so that it doesn't accumulate
         sender.setTranslation(CGPoint.zero, in: self.view)
