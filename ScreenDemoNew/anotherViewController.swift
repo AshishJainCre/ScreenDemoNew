@@ -142,8 +142,11 @@ class anotherViewController: UIViewController {
         view.addGestureRecognizer(tapGesture1)
         let panGesture1 = UIPanGestureRecognizer(target: self, action: #selector(handlePan(sender:)))
         view.addGestureRecognizer(panGesture1)
-//        let panGesture2 = UIPanGestureRecognizer(target: self, action: #selector(handlePan2(sender:)))
-//        image2.addGestureRecognizer(panGesture2)
+        
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+        doubleTapGesture.numberOfTapsRequired = 2
+            view.addGestureRecognizer(doubleTapGesture)
+
     }
     
 
@@ -173,45 +176,61 @@ class anotherViewController: UIViewController {
         }
     
     
-    @objc private func didPinch(_ gesture:UIPinchGestureRecognizer){
-        if gesture.state ==  .changed{
+    @objc private func didPinch(_ gesture: UIPinchGestureRecognizer) {
+        if gesture.state == .changed {
             let touchPoint = gesture.location(in: view)
             let x = Int(touchPoint.x)
             let y = Int(touchPoint.y)
+            
+            guard let xValue = searchX(forY: Float(y), in: cordArr) else {
+                return
+            }
+            
+            var scale = gesture.scale
+            scale = (scale - 1) * 0.1 + 1
+            
+            if xValue > Float(x) {
+                // Calculate the scaled size based on the initial size
+                let scaledWidth = image1.bounds.width * scale
+                let scaledHeight = image1.bounds.height * scale
+                image1.bounds = CGRect(x: 0, y: 0, width: scaledWidth, height: scaledHeight)
+                print("Tapped in view 2")
+                flag = false
+            } else {
+                // Calculate the scaled size based on the initial size
+                let scaledWidth = image2.bounds.width * scale
+                let scaledHeight = image2.bounds.height * scale
+                image2.bounds = CGRect(x: 0, y: 0, width: scaledWidth, height: scaledHeight)
+                print("Tapped in view 1")
+                flag = true
+            }
+            
+            print(scale)
+        }
+    }
+
+    @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        // Handle the double tap action here
         
-      //  print(cordArr)
-        
-            print("Tapped at coordinates x = ",x,"y = ",Float(y))
-        
+        let touchPoint = gesture.location(in: view)
+        let x = Int(touchPoint.x)
+        let y = Int(touchPoint.y)
+    
+    
         guard let xValue = searchX(forY: Float(y), in: cordArr) else{
             return
         }
         
-            let scale = gesture.scale
-            
         if xValue>Float(x){
-            image1.bounds = CGRect(x: 0, y: 0, width: view2.frame.width*scale, height: view2.frame.height*scale)
-            print("Tapped in 2 view")
+            image1.frame = CGRect(x: 0, y: 0, width: view2.bounds.width, height: view2.bounds.height)
             flag = false
         }else{
-            
-            image2.bounds = CGRect(x: 0, y: 0, width: view2.frame.width*scale, height: view2.frame.height*scale)
-            print("Tapped in 1 view")
+            image2.frame = CGRect(x: 0, y: 0, width: view2.bounds.width, height: view2.bounds.height)
             flag = true
         }
-            
-            
-            
-            print(scale)
-        }
         
-        if gesture.state == .ended{
-            
-        }
-        
-        
+        print("Double tap detected")
     }
-
     
     @objc private func buttonTapped(){
         print("button tapped")
